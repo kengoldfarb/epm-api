@@ -1,99 +1,39 @@
 version: 2.1
-
-# https://circleci.com/docs/2.0/deployment-integrations/#heroku
-orbs:
-  heroku: circleci/heroku@0.0.10 # Invoke the Heroku orb
-
 jobs:
-  deploy_sls_dev:
-    docker:
-      - image: circleci/node:16
-    steps:
-      - checkout
-      - run: touch .env
-      - run: echo 'export JWT_PUB="$(echo $JWT_RSA_PUBLIC_KEY | base64 -d)"' >> $BASH_ENV
-      - run: echo 'export JWT_PRIVATE="$(echo $JWT_RSA_PRIVATE_KEY | base64 -d)"' >> $BASH_ENV
-      - run: echo "JWT_RSA_PUBLIC_KEY=\"${JWT_PUB}\"" >> .env
-      - run: echo "JWT_RSA_PRIVATE_KEY=\"${JWT_PRIVATE}\"" >> .env
-      - run: cp .yarnclean.ci .yarnclean
-      - run: yarn install --frozen-lockfile
-      - run: yarn build
-      - run: yarn deploy:dev
-  deploy_sls_stage:
-    docker:
-      - image: circleci/node:16
-    steps:
-      - checkout
-      - run: touch .env
-      - run: echo 'export JWT_PUB="$(echo $JWT_RSA_PUBLIC_KEY | base64 -d)"' >> $BASH_ENV
-      - run: echo 'export JWT_PRIVATE="$(echo $JWT_RSA_PRIVATE_KEY | base64 -d)"' >> $BASH_ENV
-      - run: echo "JWT_RSA_PUBLIC_KEY=\"${JWT_PUB}\"" >> .env
-      - run: echo "JWT_RSA_PRIVATE_KEY=\"${JWT_PRIVATE}\"" >> .env
-      - run: cp .yarnclean.ci .yarnclean
-      - run: yarn install --frozen-lockfile
-      - run: yarn build
-      - run: yarn deploy:staging
   deploy_sls_prod:
     docker:
-      - image: circleci/node:16
+      - image: cimg/node:16.20
     steps:
       - checkout
       - run: touch .env
-      - run: echo 'export JWT_PUB="$(echo $JWT_RSA_PUBLIC_KEY | base64 -d)"' >> $BASH_ENV
-      - run: echo 'export JWT_PRIVATE="$(echo $JWT_RSA_PRIVATE_KEY | base64 -d)"' >> $BASH_ENV
-      - run: echo "JWT_RSA_PUBLIC_KEY=\"${JWT_PUB}\"" >> .env
-      - run: echo "JWT_RSA_PRIVATE_KEY=\"${JWT_PRIVATE}\"" >> .env
       - run: cp .yarnclean.ci .yarnclean
       - run: yarn install --frozen-lockfile
       - run: yarn build
       - run: yarn deploy:production
   test:
     docker:
-      - image: circleci/node:16
+      - image: cimg/node:16.20
     steps:
       - checkout
       - run: touch .env
-      - run: echo 'export JWT_PUB="$(echo $JWT_RSA_PUBLIC_KEY | base64 -d)"' >> $BASH_ENV
-      - run: echo 'export JWT_PRIVATE="$(echo $JWT_RSA_PRIVATE_KEY | base64 -d)"' >> $BASH_ENV
-      - run: echo "JWT_RSA_PUBLIC_KEY=\"${JWT_PUB}\"" >> .env
-      - run: echo "JWT_RSA_PRIVATE_KEY=\"${JWT_PRIVATE}\"" >> .env
       - run: yarn install --frozen-lockfile
       - run: yarn run lint
       - run: yarn run test
   release:
     docker:
-      - image: circleci/node:16
+      - image: cimg/node:16.20
     steps:
       - checkout
       - run: yarn install --frozen-lockfile
       - run: git config --global user.email "$GIT_AUTHOR_EMAIL"
       - run: git config --global user.name "$GIT_AUTHOR_NAME"
       - run: yarn run release
-  deploy_heroku_dev:
-    executor: heroku/default
-    steps:
-      - checkout
-      - heroku/install
-      - heroku/deploy-via-git
-  deploy_heroku_stage:
-    executor: heroku/default
-    steps:
-      - checkout
-      - heroku/install
-      - heroku/deploy-via-git
-  deploy_heroku_prod:
-    executor: heroku/default
-    steps:
-      - checkout
-      - heroku/install
-      - heroku/deploy-via-git
 workflows:
-  version: 2
   do_build:
     jobs:
       # TODO: Enable tests
       - test:
-          context: api_dev
+          context: epm_api_prod
           filters:
             branches:
               ignore:
@@ -108,39 +48,8 @@ workflows:
                 - dev
                 - stage
                 - master
-      # Uncomment to deploy via serverless
-      - deploy_sls_dev:
-          context: api_dev
-          filters:
-            branches:
-              only:
-                - dev
-      - deploy_sls_stage:
-          context: api_stage
-          filters:
-            branches:
-              only:
-                - stage
       - deploy_sls_prod:
-          context: api_prod
-          filters:
-            branches:
-              only:
-                - master
-      - deploy_heroku_dev:
-          context: api_dev
-          filters:
-            branches:
-              only:
-                - dev
-      - deploy_heroku_stage:
-          context: api_stage
-          filters:
-            branches:
-              only:
-                - stage
-      - deploy_heroku_prod:
-          context: api_prod
+          context: epm_api_prod
           filters:
             branches:
               only:

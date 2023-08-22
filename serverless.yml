@@ -11,7 +11,7 @@
 #
 # Happy Coding!
 
-service: meem-api
+service: epm-api
 
 configValidationMode: warn
 
@@ -34,51 +34,12 @@ provider:
     ENABLE_TEST_ENDPOINTS: ${env:ENABLE_TEST_ENDPOINTS, ''}
     DYNAMODB_SOCKETS_TABLE: ${env:DYNAMODB_SOCKETS_TABLE, ''}
     AWS_WEBSOCKET_GATEWAY_URL: ${env:AWS_WEBSOCKET_GATEWAY_URL, ''}
-    MAX_GAS_PRICE_GWEI: ${env:MAX_GAS_PRICE_GWEI, '50'}
-    MIN_GAS_PRICE_GWEI: ${env:MIN_GAS_PRICE_GWEI, '31'}
-    GAS_ESTIMATE_THRESHOLD_GWEI: ${env:GAS_ESTIMATE_THRESHOLD_GWEI, '10'}
-    DISABLE_MIGRATIONS: ${env:DISABLE_MIGRATIONS, 'true'}
-    DISABLE_ORM_SYNC: ${env:DISABLE_ORM_SYNC, 'true'}
-    DATABASE_URL: ${env:DATABASE_URL, ''}
-    TWITTER_BEARER_TOKEN: ${env:TWITTER_BEARER_TOKEN, ''}
-    TWITTER_AUTH_CALLBACK_URL: ${env:TWITTER_AUTH_CALLBACK_URL, ''}
-    ENABLE_VERBOSE_ERRORS: ${env:ENABLE_VERBOSE_ERRORS, 'false'}
-    DEFAULT_PAGINATION_LIMIT: ${env:DEFAULT_PAGINATION_LIMIT, '20'}
-    TWITTER_IDENTITY_INTEGRATION_ID: ${env:TWITTER_IDENTITY_INTEGRATION_ID, ''}
-    DISCORD_IDENTITY_INTEGRATION_ID: ${env:DISCORD_IDENTITY_INTEGRATION_ID, ''}
-    EMAIL_IDENTITY_INTEGRATION_ID: ${env:EMAIL_IDENTITY_INTEGRATION_ID, ''}
-    AUTH0_APP_DOMAIN: ${env:AUTH0_APP_DOMAIN, ''}
-    AUTH0_CLIENT_ID: ${env:AUTH0_CLIENT_ID, ''}
-    AUTH0_CLIENT_SECRET: ${env:AUTH0_CLIENT_SECRET, ''}
-    AUTH0_VERIFY_EMAIL_CALLBACK_URL: ${env:AUTH0_VERIFY_EMAIL_CALLBACK_URL, ''}
-    JSON_RPC_MAINNET: ${env:JSON_RPC_MAINNET, ''}
-    ALCHEMY_API_KEY_MAINNET: ${env:ALCHEMY_API_KEY_MAINNET, ''}
-    ALCHEMY_API_KEY_RINKEBY: ${env:ALCHEMY_API_KEY_RINKEBY, ''}
-    ALCHEMY_API_KEY_POLYGON: ${env:ALCHEMY_API_KEY_POLYGON, ''}
-    ALCHEMY_API_KEY_GOERLI: ${env:ALCHEMY_API_KEY_GOERLI, ''}
-    ALCHEMY_API_KEY_ARBITRUM_GOERLI: ${env:ALCHEMY_API_KEY_ARBITRUM_GOERLI, ''}
-    ALCHEMY_API_KEY_OPTIMISM_GOERLI: ${env:ALCHEMY_API_KEY_OPTIMISM_GOERLI, ''}
-    ALCHEMY_API_KEY_MUMBAI: ${env:ALCHEMY_API_KEY_MUMBAI, ''}
-    SEGMENT_WRITE_KEY: ${env:SEGMENT_WRITE_KEY, ''}
-    ENCRYPTION_KEY: ${env:ENCRYPTION_KEY, ''}
-    TWITTER_OAUTH_CALLBACK_URL: ${env:TWITTER_OAUTH_CALLBACK_URL, ''}
-    DISCORD_PUBLIC_KEY: ${env:DISCORD_PUBLIC_KEY, ''}
-    DISCORD_APP_ID: ${env:DISCORD_APP_ID, ''}
-    DISCORD_ENABLE_LISTENERS: ${env:DISCORD_ENABLE_LISTENERS, ''}
-    DISCORD_APP_TOKEN: ${env:DISCORD_APP_TOKEN, ''}
-    SLACK_CLIENT_ID: ${env:SLACK_CLIENT_ID, ''}
-    SLACK_CLIENT_SECRET: ${env:SLACK_CLIENT_SECRET, ''}
-    TWITTER_APP_ID: ${env:TWITTER_APP_ID, ''}
-    TWITTER_OAUTH_CLIENT_ID: ${env:TWITTER_OAUTH_CLIENT_ID, ''}
-    TWITTER_OAUTH_CLIENT_SECRET: ${env:TWITTER_OAUTH_CLIENT_SECRET, ''}
-    API_URL: ${env:API_URL, ''}
-    MEEM_DOMAIN: ${env:MEEM_DOMAIN, ''}
 
 package:
   excludeDevDependencies: true
   include:
     - build/**
-    - src/types/meem.generated.ts
+    - src/types/api.generated.ts
     - src/lib/meem-badge.png
     - .env
   exclude:
@@ -94,24 +55,24 @@ package:
     - tmp/**
 
 functions:
-  queue:
-    handler: build/serverless/queue.handle
-    events:
-      - sqs: ${env:SQS_QUEUE_ARN, ''}
-    timeout: 600
-  images:
-    handler: build/serverless/handler.handle
-    memorySize: 768
-    events:
-      - httpApi:
-         method: '*'
-         path: '/images/1.0/{p1}'
-      - httpApi:
-         method: '*'
-         path: '/images/1.0/{p1}/{p2}'
-      - httpApi:
-         method: '*'
-         path: '/images/1.0/{p1}/{p2}/{p3}'
+#   queue:
+#     handler: build/serverless/queue.handle
+#     events:
+#       - sqs: ${env:SQS_QUEUE_ARN, ''}
+#     timeout: 600
+#   images:
+#     handler: build/serverless/handler.handle
+#     memorySize: 768
+#     events:
+#       - httpApi:
+#          method: '*'
+#          path: '/images/1.0/{p1}'
+#       - httpApi:
+#          method: '*'
+#          path: '/images/1.0/{p1}/{p2}'
+#       - httpApi:
+#          method: '*'
+#          path: '/images/1.0/{p1}/{p2}/{p3}'
   catchAll:
     handler: build/serverless/handler.handle
     events:
@@ -148,26 +109,26 @@ functions:
       - httpApi:
          method: '*'
          path: '/'
-  sockets:
-    handler: build/serverless/socket.handle
-    events:
-      - websocket: $connect
-      - websocket: $disconnect
-      - websocket: $default
-  cron:
-    handler: build/serverless/cron.handle
-    timeout: 600
-    events:
-      - schedule:
-          rate: rate(5 minutes)
-          enabled: true
-          input:
-            job: ENSCron
-      - schedule:
-          rate: rate(5 minutes)
-          enabled: true
-          input:
-            job: AgreementCron
+#   sockets:
+#     handler: build/serverless/socket.handle
+#     events:
+#       - websocket: $connect
+#       - websocket: $disconnect
+#       - websocket: $default
+#   cron:
+#     handler: build/serverless/cron.handle
+#     timeout: 600
+#     events:
+#       - schedule:
+#           rate: rate(5 minutes)
+#           enabled: true
+#           input:
+#             job: ENSCron
+#       - schedule:
+#           rate: rate(5 minutes)
+#           enabled: true
+#           input:
+#             job: AgreementCron
 
 
 plugins:

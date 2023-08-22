@@ -1,9 +1,7 @@
-import Agreement from '../models/Agreement'
 import User from '../models/User'
 
 export interface IMocks {
 	users: User[]
-	agreements: Agreement[]
 }
 
 export const wallets = [

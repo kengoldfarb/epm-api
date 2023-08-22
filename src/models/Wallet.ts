@@ -1,8 +1,6 @@
-import { Op, DataTypes } from 'sequelize'
+import { DataTypes } from 'sequelize'
 import ModelWithAddress from '../core/ModelWithAddress'
 import type { IModels } from '../types/models'
-import AgreementRoleWallet from './AgreementRoleWallet'
-import type AgreementWallet from './AgreementWallet'
 import User from './User'
 
 export default class Wallet extends ModelWithAddress<Wallet> {
@@ -62,14 +60,6 @@ export default class Wallet extends ModelWithAddress<Wallet> {
 
 	public pkpTokenId!: string | null
 
-	public AgreementWalletId!: string | null
-
-	public AgreementWallets!: AgreementWallet[]
-
-	public AgreementRoleWalletId!: string | null
-
-	public AgreementRoleWallets!: AgreementRoleWallet[]
-
 	public UserId!: string | null
 
 	public User!: User
@@ -90,71 +80,5 @@ export default class Wallet extends ModelWithAddress<Wallet> {
 		}
 
 		return null
-	}
-
-	public static async findAllBy(options: {
-		addresses?: string[]
-		agreementId?: string
-		agreementRoleId?: string
-	}) {
-		const { addresses, agreementId, agreementRoleId } = options
-
-		const findAll: Record<string, any> = {}
-
-		if (addresses) {
-			findAll.where = orm.sequelize.where(
-				orm.sequelize.fn('lower', orm.sequelize.col('address')),
-				{ [Op.in]: addresses.map(w => w.toLowerCase()) }
-			)
-		}
-
-		if (agreementId) {
-			findAll.include = [
-				{
-					required: false,
-					model: orm.models.AgreementWallet,
-					where: {
-						AgreementId: agreementId
-					}
-				}
-			]
-		}
-
-		if (agreementRoleId) {
-			findAll.include = [
-				{
-					required: false,
-					model: orm.models.AgreementRoleWallet,
-					where: {
-						AgreementRoleId: agreementRoleId
-					}
-				}
-			]
-		}
-
-		const result = await orm.models.Wallet.findAll(findAll)
-
-		return result
-	}
-
-	public async enforceTXLimit() {
-		return
-		// -1 is unlimited transactions
-		// if (this.dailyTXLimit === -1) {
-		// 	return
-		// }
-
-		// const numTransactions = await orm.models.Transaction.count({
-		// 	where: {
-		// 		WalletId: this.id,
-		// 		createdAt: {
-		// 			[Op.gte]: DateTime.now().minus({ hours: 24 }).toJSDate()
-		// 		}
-		// 	}
-		// })
-
-		// if (numTransactions + 1 > this.dailyTXLimit) {
-		// 	throw new Error('TX_LIMIT_EXCEEDED')
-		// }
 	}
 }

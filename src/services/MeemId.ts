@@ -1,5 +1,4 @@
 import crypto from 'crypto'
-import { Readable } from 'stream'
 import jsonwebtoken, { SignOptions } from 'jsonwebtoken'
 import _ from 'lodash'
 import { DateTime } from 'luxon'
@@ -244,7 +243,7 @@ export default class MeemIdentityService {
 		displayName?: string
 	}): Promise<User> {
 		// TODO: Add ability to add another wallet
-		const { wallet, profilePicBase64, displayName } = data
+		const { wallet, displayName } = data
 		try {
 			let user = await orm.models.User.findOne({
 				include: [
@@ -261,30 +260,7 @@ export default class MeemIdentityService {
 				]
 			})
 
-			let profilePicUrl: string | undefined
-
-			if (!_.isUndefined(profilePicBase64)) {
-				if (profilePicBase64 !== '') {
-					const base64Data = /^data:image/.test(profilePicBase64)
-						? profilePicBase64.split(',')[1]
-						: profilePicBase64
-					const buff = Buffer.from(base64Data, 'base64')
-					const stream = Readable.from(buff)
-
-					// @ts-ignore
-					stream.path = `${user.id}/image.png`
-
-					const imageResponse = await services.web3.saveToPinata({
-						// file: Readable.from(Buffer.from(imgData, 'base64'))
-						// file: buffStream
-						file: stream
-					})
-
-					profilePicUrl = `ipfs://${imageResponse.IpfsHash}`
-				} else {
-					profilePicUrl = ''
-				}
-			}
+			const profilePicUrl = ''
 
 			if (user) {
 				const updates: any = {

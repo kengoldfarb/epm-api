@@ -14,8 +14,7 @@ export default class BaseTest {
 	protected request!: SuperTest<Test>
 
 	protected mocks: IMocks = {
-		users: [],
-		agreements: []
+		users: []
 	}
 
 	public constructor(mocha: Suite) {

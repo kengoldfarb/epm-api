@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import Wallet from '../models/Wallet'
-import { API } from './meem.generated'
+import { API } from './api.generated'
 
 export interface IQueryParams {}
 

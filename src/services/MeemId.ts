@@ -1,25 +1,12 @@
 import crypto from 'crypto'
 import { Readable } from 'stream'
-import { Analytics } from '@segment/analytics-node'
-import {
-	AuthenticationClient,
-	ManagementClient,
-	User as Auth0User
-} from 'auth0'
 import jsonwebtoken, { SignOptions } from 'jsonwebtoken'
 import _ from 'lodash'
 import { DateTime } from 'luxon'
-import { TwitterApi, UserV2 } from 'twitter-api-v2'
 import { v4 as uuidv4 } from 'uuid'
-import type Agreement from '../models/Agreement'
-import Twitter from '../models/Twitter'
 import MeemIdentity from '../models/User'
 import type User from '../models/User'
-import UserIdentity from '../models/UserIdentity'
 import type Wallet from '../models/Wallet'
-import { MeemAPI } from '../types/meem.generated'
-
-const analytics = new Analytics({ writeKey: config.SEGMENT_WRITE_KEY })
 export default class MeemIdentityService {
 	public static async getNonce(options: { address: string }) {
 		// Generate a nonce and save it for the wallet
@@ -41,7 +28,7 @@ export default class MeemIdentityService {
 		return wallet.nonce
 	}
 
-	public static async updateENS(item: Wallet | Agreement) {
+	public static async updateENS(item: Wallet) {
 		const ens = await services.ethers.lookupAddress(item.address)
 		// eslint-disable-next-line no-param-reassign
 		item.ens = ens
@@ -50,38 +37,17 @@ export default class MeemIdentityService {
 		await item.save()
 	}
 
-	public static async removeUserIdentity(options: {
-		userId: string
-		userIdentityId: string
-	}) {
-		const { userId, userIdentityId } = options
-
-		await orm.models.UserIdentity.destroy({
-			where: {
-				UserId: userId,
-				id: userIdentityId
-			}
-		})
-	}
-
 	public static async login(options: {
 		/** Attach the login method to an existing user */
 		attachToUser?: User | null
-
-		/** Auth0 access token */
-		accessToken?: string
 
 		/** The message that was signed */
 		message?: string
 
 		/** Wallet signature */
 		signature?: string
-
-		/** Optional invite code */
-		inviteCode?: string
 	}) {
-		const { attachToUser, accessToken, message, signature, inviteCode } =
-			options
+		const { attachToUser, message, signature } = options
 
 		let wallet: Wallet | undefined | null
 		let user: User | undefined | null = attachToUser
@@ -120,93 +86,6 @@ export default class MeemIdentityService {
 				})
 
 				await t.commit()
-
-				analytics.track({
-					userId: user.id,
-					event: 'Account Created'
-				})
-			}
-		}
-
-		if (accessToken) {
-			const authClient = new AuthenticationClient({
-				domain: config.AUTH0_APP_DOMAIN,
-				clientId: config.AUTH0_CLIENT_ID,
-				clientSecret: config.AUTH0_CLIENT_SECRET
-			})
-
-			// const mgmgtClient = new ManagementClient({
-			// 	domain: config.AUTH0_APP_DOMAIN,
-			// 	clientId: config.AUTH0_CLIENT_ID,
-			// 	clientSecret: config.AUTH0_CLIENT_SECRET
-			// })
-			const userInfo = await authClient.getProfile(accessToken)
-
-			log.debug(userInfo)
-
-			if (!userInfo.sub) {
-				throw new Error('INVALID_ACCESS_TOKEN')
-			}
-
-			const connectionId = userInfo.sub.replace(/^oauth2\|/, '').split('|')[0]
-
-			// eslint-disable-next-line prefer-const
-			let [userIdentity, identityProvider] = await Promise.all([
-				orm.models.UserIdentity.findOne({
-					where: {
-						externalId: userInfo.sub
-					},
-					include: [
-						{
-							model: orm.models.User,
-							include: [
-								{
-									model: orm.models.Wallet,
-									as: 'DefaultWallet'
-								}
-							]
-						}
-					]
-				}),
-				orm.models.IdentityProvider.findOne({
-					where: {
-						connectionId
-					}
-				})
-			])
-
-			if (!identityProvider) {
-				throw new Error('INTEGRATION_NOT_FOUND')
-			}
-
-			if (userIdentity) {
-				if (attachToUser && attachToUser.id !== userIdentity.UserId) {
-					throw new Error('IDENTITY_ASSOCIATED_TO_ANOTHER_USER')
-				}
-				user = userIdentity.User
-				wallet = user?.DefaultWallet
-			} else {
-				const t = await orm.sequelize.transaction()
-				user =
-					attachToUser ??
-					(await orm.models.User.create(
-						{},
-						{
-							transaction: t
-						}
-					))
-				userIdentity = await orm.models.UserIdentity.create(
-					{
-						externalId: userInfo.sub,
-						UserId: user.id,
-						IdentityProviderId: identityProvider.id
-					},
-					{
-						transaction: t
-					}
-				)
-
-				await t.commit()
 			}
 		}
 
@@ -216,13 +95,6 @@ export default class MeemIdentityService {
 
 		if (!wallet) {
 			throw new Error('MISSING_WALLET')
-		}
-
-		if (inviteCode) {
-			await services.agreement.acceptInvite({
-				wallet,
-				code: inviteCode
-			})
 		}
 
 		return {
@@ -268,7 +140,7 @@ export default class MeemIdentityService {
 	}) {
 		const { walletAddress, expiresIn, data } = options
 		const jwtOptions: SignOptions = {
-			algorithm: 'RS512',
+			algorithm: 'HS256',
 			jwtid: uuidv4()
 		}
 		if (expiresIn !== null) {
@@ -284,7 +156,7 @@ export default class MeemIdentityService {
 				...data,
 				walletAddress
 			},
-			config.JWT_RSA_PRIVATE_KEY,
+			config.JWT_SECRET,
 			jwtOptions
 		)
 		const token = jsonwebtoken.sign(
@@ -292,7 +164,7 @@ export default class MeemIdentityService {
 				...data,
 				walletAddress
 			},
-			config.JWT_RSA_PRIVATE_KEY,
+			config.JWT_SECRET,
 			jwtOptions
 		)
 
@@ -300,8 +172,8 @@ export default class MeemIdentityService {
 	}
 
 	public static verifyJWT(token: string): Record<string, any> {
-		const data = jsonwebtoken.verify(token, config.JWT_RSA_PUBLIC_KEY, {
-			algorithms: ['RS512']
+		const data = jsonwebtoken.verify(token, config.JWT_SECRET, {
+			algorithms: ['HS256']
 		})
 		return data as Record<string, any>
 	}
@@ -364,102 +236,6 @@ export default class MeemIdentityService {
 		}
 
 		return user
-	}
-
-	public static async createUserIdentity(data: {
-		identityProviderId: string
-		metadata?: any
-		visibility?: MeemAPI.IUserIdentityVisibility
-		user: User
-	}): Promise<UserIdentity> {
-		const { user, identityProviderId, metadata, visibility } = data
-
-		const userIdentity = await orm.models.UserIdentity.findOne({
-			where: {
-				IdentityProviderId: identityProviderId
-			}
-		})
-
-		if (!userIdentity) {
-			throw new Error('INTEGRATION_NOT_FOUND')
-		}
-
-		if (userIdentity.UserId !== user.id) {
-			throw new Error('NOT_AUTHORIZED')
-		}
-
-		try {
-			const meemIdUserIdentityVisibility =
-				visibility ?? MeemAPI.IUserIdentityVisibility.JustMe
-
-			if (
-				visibility &&
-				Object.values(MeemAPI.IUserIdentityVisibility).includes(
-					meemIdUserIdentityVisibility
-				)
-			) {
-				userIdentity.visibility = meemIdUserIdentityVisibility
-			}
-
-			// TODO: Typecheck metadata
-			userIdentity.metadata = {
-				...userIdentity.metadata,
-				...metadata
-			}
-
-			await userIdentity.save()
-			return userIdentity
-		} catch (e) {
-			throw new Error('SERVER_ERROR')
-		}
-	}
-
-	public static async updateUserIdentity(data: {
-		userIdentityId: string
-		metadata?: any
-		visibility?: MeemAPI.IUserIdentityVisibility
-		user: User
-	}): Promise<UserIdentity> {
-		const { user, userIdentityId, metadata, visibility } = data
-
-		const userIdentity = await orm.models.UserIdentity.findOne({
-			where: {
-				id: userIdentityId
-			}
-		})
-
-		if (!userIdentity) {
-			throw new Error('INTEGRATION_NOT_FOUND')
-		}
-
-		if (userIdentity.UserId !== user.id) {
-			throw new Error('NOT_AUTHORIZED')
-		}
-
-		try {
-			const meemIdUserIdentityVisibility =
-				visibility ?? MeemAPI.IUserIdentityVisibility.JustMe
-
-			if (
-				visibility &&
-				Object.values(MeemAPI.IUserIdentityVisibility).includes(
-					meemIdUserIdentityVisibility
-				)
-			) {
-				userIdentity.visibility = meemIdUserIdentityVisibility
-			}
-
-			// TODO: Typecheck metadata
-			userIdentity.metadata = {
-				...userIdentity.metadata,
-				...metadata
-			}
-
-			await userIdentity.save()
-			return userIdentity
-		} catch (e) {
-			throw new Error('SERVER_ERROR')
-		}
 	}
 
 	public static async createOrUpdateUser(data: {
@@ -546,151 +322,6 @@ export default class MeemIdentityService {
 			}
 
 			return user
-		} catch (e) {
-			log.crit(e)
-			throw new Error('SERVER_ERROR')
-		}
-	}
-
-	public static async verifyTwitter(data: {
-		twitterUsername: string
-		walletAddress: string
-	}): Promise<UserV2> {
-		const client = new TwitterApi(config.TWITTER_BEARER_TOKEN)
-		const { twitterUsername, walletAddress } = data
-
-		const twitterUserResult = await client.v2.userByUsername(twitterUsername, {
-			'user.fields': ['id', 'username', 'name', 'profile_image_url']
-		})
-
-		if (!twitterUserResult) {
-			log.crit('No Twitter user found for username')
-			throw new Error('SERVER_ERROR')
-		}
-
-		const usersLatestTweets = await client.v2.userTimeline(
-			twitterUserResult.data.id,
-			{
-				'tweet.fields': ['created_at', 'entities']
-			}
-		)
-
-		const verifiedTweet = usersLatestTweets.data.data.find(tweet => {
-			const isVerifiedTweet = tweet.text.toLowerCase().includes(walletAddress)
-			return isVerifiedTweet
-		})
-
-		if (!verifiedTweet) {
-			log.crit('Unable to find verification tweet')
-			throw new Error('SERVER_ERROR')
-		}
-
-		let twitter: Twitter | undefined
-		const existingTwitter = await orm.models.Twitter.findOne({
-			where: {
-				twitterId: twitterUserResult.data.id
-			}
-		})
-
-		if (!existingTwitter) {
-			twitter = await orm.models.Twitter.create({
-				id: uuidv4(),
-				twitterId: twitterUserResult.data.id
-			})
-		} else {
-			twitter = existingTwitter
-		}
-
-		if (!twitter) {
-			log.crit('Twitter not found or created')
-			throw new Error('SERVER_ERROR')
-		}
-
-		return twitterUserResult.data
-	}
-
-	public static async verifyEmail(options: {
-		meemId: MeemIdentity
-		email: string
-		redirectUri?: string
-	}): Promise<Auth0User> {
-		const { meemId, email, redirectUri } = options
-
-		try {
-			const mgmgtClient = new ManagementClient({
-				domain: config.AUTH0_APP_DOMAIN,
-				clientId: config.AUTH0_CLIENT_ID,
-				clientSecret: config.AUTH0_CLIENT_SECRET
-			})
-
-			const authClient = new AuthenticationClient({
-				domain: config.AUTH0_APP_DOMAIN,
-				clientId: config.AUTH0_CLIENT_ID,
-				clientSecret: config.AUTH0_CLIENT_SECRET
-			})
-
-			const users = await mgmgtClient.getUsers({
-				q: `app_metadata.internal_id:"${meemId.id}"`
-			})
-
-			let user = users[0] ?? null
-
-			if (user && user.user_id) {
-				if (users[0].email_verified && users[0].email === email) {
-					return users[0]
-				}
-
-				if (user.email !== email) {
-					user = await mgmgtClient.updateUser(
-						{
-							id: user.user_id
-						},
-						{
-							email,
-							email_verified: false
-						}
-					)
-				}
-
-				await authClient.requestMagicLink({
-					email,
-					authParams: {
-						redirect_uri: redirectUri ?? config.AUTH0_VERIFY_EMAIL_CALLBACK_URL
-					}
-				})
-
-				return user
-			} else {
-				user = await mgmgtClient.createUser({
-					connection: 'email',
-					email,
-					email_verified: true, // Hack to prevent verification email from being automatically sent
-					verify_email: false,
-					app_metadata: {
-						internal_id: meemId.id
-					}
-				})
-
-				if (user.user_id) {
-					// Immediately update email_verified to false after user is created. See note above about hack.
-					user = await mgmgtClient.updateUser(
-						{
-							id: user.user_id
-						},
-						{
-							email_verified: false
-						}
-					)
-				}
-
-				await authClient.requestMagicLink({
-					email,
-					authParams: {
-						redirect_uri: redirectUri ?? config.AUTH0_VERIFY_EMAIL_CALLBACK_URL
-					}
-				})
-				return user
-			}
 		} catch (e) {
 			log.crit(e)
 			throw new Error('SERVER_ERROR')

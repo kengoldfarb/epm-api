@@ -9,7 +9,7 @@ import { runTypeChain } from 'typechain'
 import { v4 as uuidv4 } from 'uuid'
 import Bundle from '../models/Bundle'
 import lintConfig from '../types/.eslintrc'
-import { MeemAPI } from '../types/meem.generated'
+import { API } from '../types/api.generated'
 
 export default class TypesService {
 	/** Creates the generated types file */
@@ -93,7 +93,7 @@ export default class TypesService {
 			endpointTypesConcat += `\n\n${projectEndpointTypes.join('\n\n')}`
 		}
 
-		const allTypes = `export namespace MeemAPI {\n${typesConcat}\nexport namespace v1 {\n${endpointTypesConcat}\n}}`
+		const allTypes = `export namespace API {\n${typesConcat}\nexport namespace v1 {\n${endpointTypesConcat}\n}}`
 
 		return { types: allTypes }
 	}
@@ -102,19 +102,19 @@ export default class TypesService {
 		return {
 			publicTypesPath: path.join(
 				process.cwd(),
-				'src/types/meem.public.generated.ts'
+				'src/types/api.public.generated.ts'
 			)
 		}
 	}
 
 	public static getAllTypesPath() {
 		return {
-			allTypesPath: path.join(process.cwd(), 'src/types/meem.generated.ts')
+			allTypesPath: path.join(process.cwd(), 'src/types/api.generated.ts')
 		}
 	}
 
 	public static async generateContractTypes(
-		options: MeemAPI.v1.GenerateTypes.IRequestBody & {
+		options: API.v1.GenerateTypes.IRequestBody & {
 			shouldForceUpdate?: boolean
 		}
 	) {

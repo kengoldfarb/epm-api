@@ -2,13 +2,13 @@ import { ethers } from 'ethers'
 import { Response } from 'express'
 import { Op } from 'sequelize'
 import ContractInstance from '../models/ContractInstance'
+import { API } from '../types/api.generated'
 import { IAuthenticatedRequest, IResponse } from '../types/app'
-import { MeemAPI } from '../types/meem.generated'
 
 export default class EPMController {
 	public static async createContract(
-		req: IAuthenticatedRequest<MeemAPI.v1.CreateContract.IDefinition>,
-		res: IResponse<MeemAPI.v1.CreateContract.IResponseBody>
+		req: IAuthenticatedRequest<API.v1.CreateContract.IDefinition>,
+		res: IResponse<API.v1.CreateContract.IResponseBody>
 	): Promise<Response> {
 		const { name, description, contractType, abi, bytecode } = req.body
 
@@ -18,7 +18,7 @@ export default class EPMController {
 			!contractType ||
 			!abi ||
 			!bytecode ||
-			!Object.values(MeemAPI.ContractType).includes(contractType)
+			!Object.values(API.ContractType).includes(contractType)
 		) {
 			throw new Error('MISSING_PARAMETERS')
 		}
@@ -54,8 +54,8 @@ export default class EPMController {
 	}
 
 	public static async addContractInstance(
-		req: IAuthenticatedRequest<MeemAPI.v1.TrackContractInstance.IDefinition>,
-		res: IResponse<MeemAPI.v1.TrackContractInstance.IResponseBody>
+		req: IAuthenticatedRequest<API.v1.TrackContractInstance.IDefinition>,
+		res: IResponse<API.v1.TrackContractInstance.IResponseBody>
 	): Promise<Response> {
 		const { address, chainId } = req.body
 
@@ -69,7 +69,7 @@ export default class EPMController {
 		const provider = alchemy.provider
 
 		// Fetch bytecode and compare against db
-		const bytecode = await provider.core.getCode(address)
+		const bytecode = await provider.getCode(address)
 
 		const [contract, walletContractInstance] = await Promise.all([
 			orm.models.Contract.findOne({
@@ -112,8 +112,8 @@ export default class EPMController {
 	}
 
 	public static async removeContractInstance(
-		req: IAuthenticatedRequest<MeemAPI.v1.UntrackContractInstance.IDefinition>,
-		res: IResponse<MeemAPI.v1.UntrackContractInstance.IResponseBody>
+		req: IAuthenticatedRequest<API.v1.UntrackContractInstance.IDefinition>,
+		res: IResponse<API.v1.UntrackContractInstance.IResponseBody>
 	): Promise<Response> {
 		const { contractInstanceId } = req.params
 
@@ -135,8 +135,8 @@ export default class EPMController {
 	}
 
 	public static async updateWalletContractInstance(
-		req: IAuthenticatedRequest<MeemAPI.v1.UpdateWalletContractInstance.IDefinition>,
-		res: IResponse<MeemAPI.v1.UpdateWalletContractInstance.IResponseBody>
+		req: IAuthenticatedRequest<API.v1.UpdateWalletContractInstance.IDefinition>,
+		res: IResponse<API.v1.UpdateWalletContractInstance.IResponseBody>
 	): Promise<Response> {
 		const { note, name } = req.body
 
@@ -159,8 +159,8 @@ export default class EPMController {
 	}
 
 	public static async createBundle(
-		req: IAuthenticatedRequest<MeemAPI.v1.CreateBundle.IDefinition>,
-		res: IResponse<MeemAPI.v1.CreateBundle.IResponseBody>
+		req: IAuthenticatedRequest<API.v1.CreateBundle.IDefinition>,
+		res: IResponse<API.v1.CreateBundle.IResponseBody>
 	): Promise<Response> {
 		const { name, description, contracts } = req.body
 
@@ -199,8 +199,8 @@ export default class EPMController {
 	}
 
 	public static async updateBundle(
-		req: IAuthenticatedRequest<MeemAPI.v1.UpdateBundle.IDefinition>,
-		res: IResponse<MeemAPI.v1.UpdateBundle.IResponseBody>
+		req: IAuthenticatedRequest<API.v1.UpdateBundle.IDefinition>,
+		res: IResponse<API.v1.UpdateBundle.IResponseBody>
 	): Promise<Response> {
 		const { bundleId } = req.params
 		const { name, description, contracts } = req.body

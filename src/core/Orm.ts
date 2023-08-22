@@ -259,7 +259,7 @@ export default class ORM {
 	}
 
 	private async initTable(): Promise<number> {
-		const matches = config.DATABASE_URL.match(/\/([a-zA-Z0-9]+)$/)
+		const matches = config.DATABASE_URL.match(/\/([a-zA-Z0-9_]+)$/)
 		const dbName = matches && matches[1]
 
 		if (!matches) {

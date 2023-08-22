@@ -51,7 +51,5 @@ export default class User extends BaseModel<User> {
 		this.belongsTo(models.Wallet, {
 			as: 'DefaultWallet'
 		})
-
-		this.hasMany(models.UserIdentity)
 	}
 }

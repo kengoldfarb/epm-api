@@ -44,3 +44,34 @@ export interface IRequestPaginated {
 	/** The number of records to fetch */
 	limit?: number
 }
+
+/** The zero address. Used to denote fields that are not set. */
+export const zeroAddress = '0x0000000000000000000000000000000000000000'
+
+export enum SortOrder {
+	Asc = 'asc',
+	Desc = 'desc'
+}
+
+export enum ContractType {
+	Regular = 'regular',
+	DiamondProxy = 'diamondProxy',
+	DiamondFacet = 'diamondFacet'
+}
+
+export interface IUser {
+	id: string
+	displayName: string
+	profilePicUrl: string
+	DefaultWalletId: string
+	Wallets: {
+		id: string
+		address: string
+		ens: string
+	}[]
+	DefaultWallet: {
+		id: string
+		address: string
+		ens: string
+	}
+}

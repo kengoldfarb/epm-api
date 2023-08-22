@@ -3,7 +3,7 @@ import { IError, HttpMethod, IApiResponseBody } from '../../api.shared'
 export namespace CreateBundle {
 	export interface IPathParams {}
 
-	export const path = () => `/api/1.0/epm/bundles`
+	export const path = () => `/api/1.0/bundles`
 
 	export const method = HttpMethod.Post
 

@@ -22,9 +22,4 @@ export default (app: Express, _express: typeof coreExpress) => {
 
 	router.getAsync('/runMigrations', AdminController.runMigrations)
 	router.getAsync('/runSync', AdminController.runSync)
-	router.getAsync('/syncExtensions', AdminController.syncExtensions)
-	router.getAsync(
-		'/seedIdentityProviders',
-		AdminController.seedIdentityProviders
-	)
 }

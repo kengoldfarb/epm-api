@@ -8,8 +8,8 @@ export default (app: Express) => {
 			jwt = req.headers.authorization.replace(/^JWT /, '')
 		} else if (req.query.jwt) {
 			jwt = req.query.jwt as string
-		} else if (req.cookies?.meemJwt) {
-			jwt = req.cookies.meemJwt
+		} else if (req.cookies?.jwt) {
+			jwt = req.cookies.jwt
 		}
 
 		if (jwt) {

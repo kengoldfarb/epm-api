@@ -1,9 +1,8 @@
 import type Faker from 'faker'
 import { UserV1 } from 'twitter-api-v2'
 import { v4 as uuidv4 } from 'uuid'
-import { MeemAPI } from '../types/meem.generated'
 
-export default class EthersService {
+export default class TestingService {
 	public static shouldInitialize = true
 
 	private faker!: typeof Faker
@@ -17,25 +16,6 @@ export default class EthersService {
 
 	public getIpfsUrl() {
 		return `ipfs://${this.faker.lorem.word()}`
-	}
-
-	public getMeemMetadata(
-		metadata: Partial<MeemAPI.IMeemMetadataLike>
-	): MeemAPI.IMeemMetadataLike {
-		const imageUrl = this.getIpfsUrl()
-		return {
-			meem_metadata_type: 'MeemAgreement_Contract',
-			meem_metadata_version: '20221116',
-			name: metadata.name ?? this.faker.name.firstName(),
-			description: metadata.description ?? this.faker.lorem.paragraphs(),
-			external_url: metadata.external_url ?? this.faker.internet.url(),
-			image: metadata.image ?? imageUrl,
-			image_original: metadata.image_original ?? imageUrl
-		}
-	}
-
-	public getNFTs(): MeemAPI.IChainNFTsResult[] {
-		return []
 	}
 
 	public getTwitterUserV1(): UserV1 {

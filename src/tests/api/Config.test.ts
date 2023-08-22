@@ -1,5 +1,5 @@
 import { assert } from 'chai'
-import { MeemAPI } from '../../types/meem.generated'
+import { API } from '../../types/api.generated'
 import BaseTest from '../BaseTest'
 
 class ConfigTests extends BaseTest {
@@ -10,7 +10,7 @@ class ConfigTests extends BaseTest {
 	private async getConfig() {
 		const { body } = await this.makeRequest({
 			path: '/api/1.0/config',
-			method: MeemAPI.HttpMethod.Get,
+			method: API.HttpMethod.Get,
 			expect: 200
 		})
 

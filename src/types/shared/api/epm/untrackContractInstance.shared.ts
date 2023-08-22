@@ -6,7 +6,7 @@ export namespace UntrackContractInstance {
 	}
 
 	export const path = (options: IPathParams) =>
-		`/api/1.0/epm/contractInstances/${options.contractInstanceId}`
+		`/api/1.0/contractInstances/${options.contractInstanceId}`
 
 	export const method = HttpMethod.Delete
 

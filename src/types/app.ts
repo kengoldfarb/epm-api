@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import Wallet from '../models/Wallet'
-import { MeemAPI } from './meem.generated'
+import { API } from './meem.generated'
 
 export interface IQueryParams {}
 
@@ -25,7 +25,7 @@ export interface IRequest<TDefinition extends IEndpoint = IEndpoint>
 
 export interface IAPIRequestPaginated<TDefinition extends IEndpoint = IEndpoint>
 	extends IRequest<TDefinition>,
-		MeemAPI.IRequestPaginated {
+		API.IRequestPaginated {
 	limit: number
 	page: number
 }

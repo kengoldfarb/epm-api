@@ -1,11 +1,4 @@
 import { IError, HttpMethod, IApiResponseBody } from '../../api.shared'
-import {
-	Chain,
-	IMeemPermission,
-	IMeemSplit,
-	IMeemProperties,
-	ContractType
-} from '../../meem.shared'
 
 export namespace UpdateWalletContractInstance {
 	export interface IPathParams {
@@ -13,7 +6,7 @@ export namespace UpdateWalletContractInstance {
 	}
 
 	export const path = (options: IPathParams) =>
-		`/api/1.0/epm/walletContractInstances/${options.contractInstanceId}`
+		`/api/1.0/walletContractInstances/${options.contractInstanceId}`
 
 	export const method = HttpMethod.Patch
 

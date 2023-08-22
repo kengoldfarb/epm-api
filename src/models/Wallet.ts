@@ -75,10 +75,7 @@ export default class Wallet extends ModelWithAddress<Wallet> {
 	public User!: User
 
 	public static associate(models: IModels) {
-		this.hasMany(models.AgreementWallet)
-		this.hasMany(models.AgreementRoleWallet)
 		this.belongsTo(models.User)
-		// this.hasOne(models.MeemIdentityWallet)
 	}
 
 	public static async getByJWT(jwt: string) {

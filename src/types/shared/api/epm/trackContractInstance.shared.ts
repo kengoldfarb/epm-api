@@ -3,7 +3,7 @@ import { IError, HttpMethod, IApiResponseBody } from '../../api.shared'
 export namespace TrackContractInstance {
 	export interface IPathParams {}
 
-	export const path = () => `/api/1.0/epm/contractInstances`
+	export const path = () => `/api/1.0/contractInstances`
 
 	export const method = HttpMethod.Post
 

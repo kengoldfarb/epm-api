@@ -1,10 +1,9 @@
 import { Server } from 'http'
-import faker from 'faker'
 import { Suite } from 'mocha'
 import supertest, { SuperTest, Test, Response } from 'supertest'
 import start from '../core/start'
 import User from '../models/User'
-import { MeemAPI } from '../types/meem.generated'
+import { API } from '../types/api.generated'
 import { wallets, type IMocks } from './mocks'
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
@@ -57,47 +56,6 @@ export default class BaseTest {
 		}
 	}
 
-	protected async getAgreement() {
-		const wallet = this.mocks.users[0].DefaultWallet
-
-		const result = await services.agreement.createAgreementWithoutContract({
-			body: {
-				name: faker.lorem.words(),
-				metadata: {},
-				shouldCreateAdminRole: true
-			},
-			owner: wallet
-		})
-
-		await Promise.all([
-			services.agreement.bulkMint({
-				agreementId: result.agreement.id,
-				mintedBy: wallet.address,
-				tokens: [
-					{
-						to: wallet.address,
-						metadata: {}
-					}
-				]
-			}),
-			result.adminAgreement
-				? services.agreement.bulkMint({
-						agreementId: result.agreement.id,
-						agreementRoleId: result.adminAgreement.id,
-						mintedBy: wallet.address,
-						tokens: [
-							{
-								to: wallet.address,
-								metadata: {}
-							}
-						]
-				  })
-				: Promise.resolve(null)
-		])
-
-		return result
-	}
-
 	protected async after() {}
 
 	protected async setup() {
@@ -110,7 +68,7 @@ export default class BaseTest {
 
 	protected async makeRequest(options: {
 		path: string
-		method: MeemAPI.HttpMethod
+		method: API.HttpMethod
 		query?: Record<string, any>
 		// eslint-disable-next-line @typescript-eslint/ban-types
 		data?: string | object
@@ -155,17 +113,17 @@ export default class BaseTest {
 		})
 	}
 
-	protected getRequest(method: MeemAPI.HttpMethod) {
+	protected getRequest(method: API.HttpMethod) {
 		switch (method) {
-			case MeemAPI.HttpMethod.Options:
+			case API.HttpMethod.Options:
 				return this.request.options
-			case MeemAPI.HttpMethod.Delete:
+			case API.HttpMethod.Delete:
 				return this.request.delete
-			case MeemAPI.HttpMethod.Patch:
+			case API.HttpMethod.Patch:
 				return this.request.patch
-			case MeemAPI.HttpMethod.Post:
+			case API.HttpMethod.Post:
 				return this.request.post
-			case MeemAPI.HttpMethod.Get:
+			case API.HttpMethod.Get:
 			default:
 				return this.request.get
 		}

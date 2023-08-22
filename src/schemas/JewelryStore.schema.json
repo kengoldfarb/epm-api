@@ -1,8 +1,0 @@
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "schema:JewelryStore",
-  "title": "JewelryStore",
-  "description": "A jewelry store.",
-  "type": "object",
-  "allOf": [{ "description": "A retail good store.", "$ref": "schema:Store" }]
-}

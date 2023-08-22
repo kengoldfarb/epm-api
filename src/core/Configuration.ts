@@ -21,6 +21,7 @@ export default class Configuration {
 	public async load(): Promise<typeof defaultConfig> {
 		const file = path.join(this.currentPath, 'config', this.env())
 		const dotenvpath = path.join(process.cwd(), '.env')
+		console.log({ dotenvpath })
 
 		await this.dotenv(dotenvpath)
 
@@ -32,6 +33,8 @@ export default class Configuration {
 			envConfig = (await import(file)).default
 		}
 		const combinedConfig = _.merge(defaultConfig, envConfig)
+
+		console.log({ combinedConfig })
 		return combinedConfig
 	}
 

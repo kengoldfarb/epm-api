@@ -1,8 +1,0 @@
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "schema:HobbyShop",
-  "title": "HobbyShop",
-  "description": "A store that sells materials useful or necessary for various hobbies.",
-  "type": "object",
-  "allOf": [{ "description": "A retail good store.", "$ref": "schema:Store" }]
-}

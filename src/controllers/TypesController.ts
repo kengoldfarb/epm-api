@@ -1,11 +1,10 @@
 import { Response } from 'express'
+import { API } from '../types/api.generated'
 import { IRequest, IResponse } from '../types/app'
-import { MeemAPI } from '../types/meem.generated'
-import openAPIDefinition from '../types/shared/api/meem-api.json'
 export default class TypesController {
 	public static async generateTypes(
-		req: IRequest<MeemAPI.v1.GenerateTypes.IDefinition>,
-		res: IResponse<MeemAPI.v1.GenerateTypes.IResponseBody>
+		req: IRequest<API.v1.GenerateTypes.IDefinition>,
+		res: IResponse<API.v1.GenerateTypes.IResponseBody>
 	): Promise<Response> {
 		const { types, abi } = await services.types.generateContractTypes(req.body)
 
@@ -13,12 +12,5 @@ export default class TypesController {
 			types,
 			abi
 		})
-	}
-
-	public static async getOpenAPIFile(
-		req: IRequest<any>,
-		res: IResponse<any>
-	): Promise<Response> {
-		return res.json(openAPIDefinition)
 	}
 }

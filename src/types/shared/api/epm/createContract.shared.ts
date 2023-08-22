@@ -1,16 +1,14 @@
-import { IError, HttpMethod, IApiResponseBody } from '../../api.shared'
 import {
-	Chain,
-	IMeemPermission,
-	IMeemSplit,
-	IMeemProperties,
+	IError,
+	HttpMethod,
+	IApiResponseBody,
 	ContractType
-} from '../../meem.shared'
+} from '../../api.shared'
 
 export namespace CreateContract {
 	export interface IPathParams {}
 
-	export const path = () => `/api/1.0/epm/contracts`
+	export const path = () => `/api/1.0/contracts`
 
 	export const method = HttpMethod.Post
 

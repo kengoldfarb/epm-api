@@ -34,7 +34,7 @@ declare global {
 	}
 
 	namespace Express {
-		interface IMeemRequest {
+		interface IAppRequest {
 			wallet?: Wallet
 			limit?: number
 			page?: number
@@ -46,6 +46,6 @@ declare global {
 
 		export function Router(options?: RouterOptions): IAppRouter
 
-		export interface Request extends IMeemRequest {}
+		export interface Request extends IAppRequest {}
 	}
 }
